@@ -12,6 +12,11 @@ The Time attendance ZKTeco software provides an easy way to integrate ZKTeco bio
 - **User Management:** Add, update, and remove users on the biometric device directly from your application.
 - **Real-time Data Sync:** Ensure that your application always has the latest attendance data.
 
+
+## Example Images
+
+![Image 01](https://raw.githubusercontent.com/inaat/time-attendance/main/01.png)
+![Image 02](https://raw.githubusercontent.com/inaat/time-attendance/main/02.png)
 ## Installation
 
 You can install the nodejs modules
