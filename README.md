@@ -15,8 +15,8 @@ The Time attendance ZKTeco software provides an easy way to integrate ZKTeco bio
 
 ## Example Images
 
-![Image 01](https://raw.githubusercontent.com/inaat/time-attendance/main/01.png)
-![Image 02](https://raw.githubusercontent.com/inaat/time-attendance/main/02.png)
+![Image 01](https://raw.githubusercontent.com/inaat/time-attendance/main/assets/01.png)
+![Image 02](https://raw.githubusercontent.com/inaat/time-attendance/main/assets/02.png)
 ## Installation
 
 You can install the nodejs modules
