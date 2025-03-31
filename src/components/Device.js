@@ -46,6 +46,16 @@ const columns = (handleEdit, handleDelete, testConnection) => [
     ),
   },
   {
+    name: "Get User URL",
+    selector: (row) => row.get_user_url,
+    sortable: true,
+    cell: (row) => (
+      <a href={row.get_user_url} target="_blank" rel="noopener noreferrer">
+        {row.get_user_url}
+      </a>
+    ),
+  },
+  {
     name: "Token",
     selector: (row) => row.token,
     sortable: true,
@@ -76,6 +86,7 @@ const Device = (props) => {
     id: "", 
     ip: "", 
     url: "", 
+    get_user_url: "", 
     type: "student",
     token: "" 
   });
@@ -119,7 +130,7 @@ const Device = (props) => {
 
   const handleAdd = () => {
     setModalType("Add");
-    setFormData({ id: "", ip: "", url: "", type: "student", token: "" });
+    setFormData({ id: "", ip: "", url: "", get_user_url: "", type: "student", token: "" });
     toggleModal();
   };
 
@@ -147,15 +158,16 @@ const Device = (props) => {
   };
 
   const validateForm = () => {
-    if (!formData.id || !formData.ip || !formData.url) {
+    if (!formData.id || !formData.ip || !formData.url || !formData.get_user_url) {
       alert('Please fill in all required fields');
       return false;
     }
     
     try {
       new URL(formData.url);
+      new URL(formData.get_user_url);
     } catch (error) {
-      alert('Please enter a valid URL (e.g., http://example.com)');
+      alert('Please enter valid URLs (e.g., http://example.com)');
       return false;
     }
 
@@ -258,6 +270,22 @@ const Device = (props) => {
                 onChange={handleInputChange}
                 pattern="https?://.*"
                 placeholder="http://example.com/api"
+                required
+              />
+              <small className="form-text text-muted">
+                Must include protocol (http:// or https://)
+              </small>
+            </FormGroup>
+            <FormGroup>
+              <Label for="get_user_url">Get User URL *</Label>
+              <Input
+                type="url"
+                name="get_user_url"
+                id="get_user_url"
+                value={formData.get_user_url}
+                onChange={handleInputChange}
+                pattern="https?://.*"
+                placeholder="http://example.com/api/user"
                 required
               />
               <small className="form-text text-muted">

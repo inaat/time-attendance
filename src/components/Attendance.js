@@ -117,17 +117,17 @@ const Attendance = (props) => {
 
         if (confirmClear) {
           try {
-            const clearResult = await ipcRenderer.invoke('clear-attendance-log', { 
-              device: selectedDevice
-            });
+            // const clearResult = await ipcRenderer.invoke('clear-attendance-log', { 
+            //   device: selectedDevice
+            // });
 
-            if (clearResult.success) {
-              alert('Attendance logs cleared successfully from device');
+            //if (clearResult.success) {
+            //  alert('Attendance logs cleared successfully from device');
               setAttendanceList([]); // Clear local attendance list
               await fetchAttendanceFromDevice(); // Refresh attendance list
-            } else {
-              alert(`Failed to clear logs: ${clearResult.message}`);
-            }
+            // } else {
+            //   alert(`Failed to clear logs: ${clearResult.message}`);
+            // }
           } catch (error) {
             alert(`Error clearing logs: ${error.message}`);
           }

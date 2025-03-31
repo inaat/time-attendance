@@ -45,6 +45,7 @@ function createDeviceDB() {
                     table.string('ip'); // IP address of the device
                     table.string('type'); // Type of the device
                     table.string('url').nullable(); // Type of the device
+                    table.string('get_user_url').nullable(); // Type of the device
                     table.string('token').nullable(); // Type of the device
                     table.timestamp('created_at').defaultTo(knex.fn.now()); // Timestamp when the record is created
                     table.timestamp('updated_at').defaultTo(knex.fn.now()); // Timestamp for the last update
@@ -306,9 +307,9 @@ function getAllDevices() {
 
 // Add a new device
 const addDevice = async (device) => {
-    const { id, ip, type,url,token } = device;
+    const { id, ip, type,url,token,get_user_url} = device;
     try {
-        await knex('devices').insert({ id, ip, type,url,token });
+        await knex('devices').insert({ id, ip, type,url,token,get_user_url });
         return 'Device added successfully.';
     } catch (err) {
         console.error('Error adding device:', err.message);
@@ -318,11 +319,11 @@ const addDevice = async (device) => {
 
 // Edit an existing device
 const editDevice = async (id, updatedDevice) => {
-    const { ip, type,url,token } = updatedDevice;
+    const { ip, type,url,token,get_user_url } = updatedDevice;
     try {
         await knex('devices')
             .where({ id })
-            .update({ ip, type,url ,token});
+            .update({ ip, type,url ,token,get_user_url});
         return 'Device updated successfully.';
     } catch (err) {
         console.error('Error editing device:', err.message);
