@@ -1,0 +1,152 @@
+{
+  "app": {
+    "title": "TimeTrack",
+    "subtitle": "Time & Attendance System"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "attendance": "Attendance",
+    "realtime": "Real-time",
+    "users": "Users",
+    "devices": "Devices"
+  },
+  "dashboard": {
+    "welcome": "Welcome to your attendance management system",
+    "quickAccess": "Quick Access",
+    "stats": {
+      "totalDevices": "Total Devices",
+      "activeDevices": "Active Devices",
+      "totalUsers": "Total Users",
+      "recordsToday": "Records Today"
+    },
+    "access": "Access {{name}}"
+  },
+  "attendance": {
+    "title": "Attendance Management System",
+    "selectDevice": "Select Biometric Device",
+    "fetchRecords": "Fetch Records",
+    "syncRecords": "Sync Records",
+    "cancelSync": "Cancel Sync",
+    "searchPlaceholder": "Search by User ID, Name, IP, Date, Time...",
+    "records": "Attendance Records",
+    "noRecords": "No attendance records found",
+    "columns": {
+      "ip": "IP",
+      "userId": "User ID",
+      "name": "Name",
+      "date": "Date",
+      "time": "Time",
+      "count": "Count"
+    },
+    "syncProgress": {
+      "processed": "Processed",
+      "success": "Success",
+      "failed": "Failed"
+    }
+  },
+  "users": {
+    "title": "User List",
+    "deviceSelection": "Device Selection",
+    "selectDevice": "Select a device to manage users",
+    "selectDevicePlaceholder": "Select a device",
+    "searchPlaceholder": "Search by User ID, Name, Card Number...",
+    "fetchUsers": "Fetch Users",
+    "syncUsers": "Sync Users to Device",
+    "syncSelected": "Sync Selected",
+    "deleteNonActive": "Delete Non-Active Users",
+    "addUser": "Add User",
+    "editUser": "Edit User",
+    "columns": {
+      "cardNumber": "Card Number",
+      "name": "Name",
+      "userId": "User ID",
+      "role": "Role",
+      "uid": "UID",
+      "employeeStatus": "Employee Status",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "roles": {
+      "user": "User",
+      "admin": "Admin"
+    },
+    "status": {
+      "synced": "Synced",
+      "notSynced": "Not Synced"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "sync": "Sync"
+    },
+    "modal": {
+      "addTitle": "Add User",
+      "editTitle": "Edit User",
+      "name": "Name",
+      "userId": "User ID",
+      "cardNumber": "Card Number",
+      "role": "Role",
+      "add": "Add",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  },
+  "devices": {
+    "title": "View Devices",
+    "subtitle": "Manage connected devices and their endpoints below.",
+    "totalDevices": "Total devices",
+    "addDevice": "Add Device",
+    "columns": {
+      "id": "ID",
+      "ip": "IP Address",
+      "type": "Type",
+      "url": "URL",
+      "getUserUrl": "Get User URL",
+      "token": "Token",
+      "actions": "Actions"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "test": "Test"
+    },
+    "modal": {
+      "addTitle": "Add New Device",
+      "editTitle": "Edit Device",
+      "deviceId": "Device ID",
+      "ipAddress": "IP Address",
+      "endpointUrl": "Endpoint URL",
+      "getUserUrl": "Get User URL",
+      "token": "Token",
+      "deviceType": "Device Type",
+      "types": {
+        "student": "Student",
+        "staff": "Staff",
+        "admin": "Admin"
+      },
+      "create": "Create Device",
+      "saveChanges": "Save Changes",
+      "cancel": "Cancel",
+      "urlHelper": "Must include protocol (http:// or https://)"
+    }
+  },
+  "realtime": {
+    "title": "Real-Time Attendance",
+    "subtitle": "View real-time attendance logs from multiple devices",
+    "logsTitle": "Real-Time Attendance Logs",
+    "columns": {
+      "deviceIp": "Device IP",
+      "userId": "User ID",
+      "date": "Date",
+      "time": "Time"
+    }
+  },
+  "common": {
+    "back": "BACK",
+    "loading": "Loading...",
+    "rowsPerPage": "Rows per page:",
+    "of": "of",
+    "search": "Search",
+    "noData": "No data found"
+  }
+}

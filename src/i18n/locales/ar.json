@@ -1,0 +1,152 @@
+{
+  "app": {
+    "title": "تايم تراك",
+    "subtitle": "نظام الوقت والحضور"
+  },
+  "nav": {
+    "dashboard": "لوحة التحكم",
+    "attendance": "الحضور",
+    "realtime": "الوقت الفعلي",
+    "users": "المستخدمون",
+    "devices": "الأجهزة"
+  },
+  "dashboard": {
+    "welcome": "مرحباً بك في نظام إدارة الحضور",
+    "quickAccess": "وصول سريع",
+    "stats": {
+      "totalDevices": "إجمالي الأجهزة",
+      "activeDevices": "الأجهزة النشطة",
+      "totalUsers": "إجمالي المستخدمين",
+      "recordsToday": "سجلات اليوم"
+    },
+    "access": "الوصول إلى {{name}}"
+  },
+  "attendance": {
+    "title": "نظام إدارة الحضور",
+    "selectDevice": "اختر جهاز القياسات الحيوية",
+    "fetchRecords": "جلب السجلات",
+    "syncRecords": "مزامنة السجلات",
+    "cancelSync": "إلغاء المزامنة",
+    "searchPlaceholder": "البحث بمعرف المستخدم، الاسم، IP، التاريخ، الوقت...",
+    "records": "سجلات الحضور",
+    "noRecords": "لم يتم العثور على سجلات حضور",
+    "columns": {
+      "ip": "عنوان IP",
+      "userId": "معرف المستخدم",
+      "name": "الاسم",
+      "date": "التاريخ",
+      "time": "الوقت",
+      "count": "العدد"
+    },
+    "syncProgress": {
+      "processed": "تمت المعالجة",
+      "success": "نجح",
+      "failed": "فشل"
+    }
+  },
+  "users": {
+    "title": "قائمة المستخدمين",
+    "deviceSelection": "اختيار الجهاز",
+    "selectDevice": "اختر جهازاً لإدارة المستخدمين",
+    "selectDevicePlaceholder": "اختر جهازاً",
+    "searchPlaceholder": "البحث بمعرف المستخدم، الاسم، رقم البطاقة...",
+    "fetchUsers": "جلب المستخدمين",
+    "syncUsers": "مزامنة المستخدمين إلى الجهاز",
+    "syncSelected": "مزامنة المحدد",
+    "deleteNonActive": "حذف المستخدمين غير النشطين",
+    "addUser": "إضافة مستخدم",
+    "editUser": "تعديل مستخدم",
+    "columns": {
+      "cardNumber": "رقم البطاقة",
+      "name": "الاسم",
+      "userId": "معرف المستخدم",
+      "role": "الدور",
+      "uid": "UID",
+      "employeeStatus": "حالة الموظف",
+      "status": "الحالة",
+      "actions": "الإجراءات"
+    },
+    "roles": {
+      "user": "مستخدم",
+      "admin": "مشرف"
+    },
+    "status": {
+      "synced": "متزامن",
+      "notSynced": "غير متزامن"
+    },
+    "actions": {
+      "edit": "تعديل",
+      "delete": "حذف",
+      "sync": "مزامنة"
+    },
+    "modal": {
+      "addTitle": "إضافة مستخدم",
+      "editTitle": "تعديل مستخدم",
+      "name": "الاسم",
+      "userId": "معرف المستخدم",
+      "cardNumber": "رقم البطاقة",
+      "role": "الدور",
+      "add": "إضافة",
+      "save": "حفظ",
+      "cancel": "إلغاء"
+    }
+  },
+  "devices": {
+    "title": "عرض الأجهزة",
+    "subtitle": "إدارة الأجهزة المتصلة ونقاط النهاية أدناه.",
+    "totalDevices": "إجمالي الأجهزة",
+    "addDevice": "إضافة جهاز",
+    "columns": {
+      "id": "المعرف",
+      "ip": "عنوان IP",
+      "type": "النوع",
+      "url": "عنوان URL",
+      "getUserUrl": "عنوان URL لجلب المستخدم",
+      "token": "الرمز",
+      "actions": "الإجراءات"
+    },
+    "actions": {
+      "edit": "تعديل",
+      "delete": "حذف",
+      "test": "اختبار"
+    },
+    "modal": {
+      "addTitle": "إضافة جهاز جديد",
+      "editTitle": "تعديل الجهاز",
+      "deviceId": "معرف الجهاز",
+      "ipAddress": "عنوان IP",
+      "endpointUrl": "عنوان URL للنقطة النهائية",
+      "getUserUrl": "عنوان URL لجلب المستخدم",
+      "token": "الرمز",
+      "deviceType": "نوع الجهاز",
+      "types": {
+        "student": "طالب",
+        "staff": "موظف",
+        "admin": "مشرف"
+      },
+      "create": "إنشاء جهاز",
+      "saveChanges": "حفظ التغييرات",
+      "cancel": "إلغاء",
+      "urlHelper": "يجب تضمين البروتوكول (http:// أو https://)"
+    }
+  },
+  "realtime": {
+    "title": "الحضور في الوقت الفعلي",
+    "subtitle": "عرض سجلات الحضور في الوقت الفعلي من أجهزة متعددة",
+    "logsTitle": "سجلات الحضور في الوقت الفعلي",
+    "columns": {
+      "deviceIp": "عنوان IP للجهاز",
+      "userId": "معرف المستخدم",
+      "date": "التاريخ",
+      "time": "الوقت"
+    }
+  },
+  "common": {
+    "back": "رجوع",
+    "loading": "جار التحميل...",
+    "rowsPerPage": "الصفوف لكل صفحة:",
+    "of": "من",
+    "search": "بحث",
+    "noData": "لم يتم العثور على بيانات"
+  }
+}

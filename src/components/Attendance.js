@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 import {
   Card, CardTitle, CardText, Col, Row, Button, Input, FormGroup, Label, Spinner, Progress
@@ -7,6 +8,7 @@ import DataTable from 'react-data-table-component';
 const { ipcRenderer } = window.require('electron');
 
 const Attendance = (props) => {
+  const { t } = useTranslation();
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [attendanceList, setAttendanceList] = useState([]);
@@ -32,12 +34,12 @@ const Attendance = (props) => {
   };
 
   const columns = [
-    { name: 'IP', selector: row => row.ip, sortable: true },
-    { name: 'User ID', selector: row => row.userId, sortable: true },
-    { name: 'Name', selector: row => row.name, sortable: true },
-    { name: 'Date', selector: row => row.date, sortable: true },
-    { name: 'Time', selector: row => row.time, sortable: true },
-    { name: 'Count', selector: row => row.Count, sortable: true },
+    { name: t('attendance.columns.ip'), selector: row => row.ip, sortable: true },
+    { name: t('attendance.columns.userId'), selector: row => row.userId, sortable: true },
+    { name: t('attendance.columns.name'), selector: row => row.name, sortable: true },
+    { name: t('attendance.columns.date'), selector: row => row.date, sortable: true },
+    { name: t('attendance.columns.time'), selector: row => row.time, sortable: true },
+    { name: t('attendance.columns.count'), selector: row => row.Count, sortable: true },
   ];
 
   useEffect(() => {
@@ -219,12 +221,12 @@ const Attendance = (props) => {
     <React.Fragment>
       <Row>
         <Col sm="12">
-          <Button onClick={props.goBackButton} color="primary">BACK</Button>
+          <Button onClick={props.goBackButton} color="primary" size="sm">{t('common.back')}</Button>
           <Card body className="mt-3">
-            <CardTitle tag="h5">Attendance Management System</CardTitle>
+            <CardTitle tag="h5">{t('attendance.title')}</CardTitle>
             <CardText>
               {selectedDevice && (
-                `Connected to: ${selectedDevice.name || selectedDevice.ip} (${selectedDevice.type.toUpperCase()})`
+                `${selectedDevice.name || selectedDevice.ip} (${selectedDevice.type.toUpperCase()})`
               )}
             </CardText>
           </Card>
@@ -234,7 +236,7 @@ const Attendance = (props) => {
       <Row className="mb-3">
         <Col sm="12">
           <FormGroup>
-            <Label for="deviceSelect">Select Biometric Device</Label>
+            <Label for="deviceSelect">{t('attendance.selectDevice')}</Label>
             <Input
               type="select"
               name="deviceSelect"
@@ -243,7 +245,7 @@ const Attendance = (props) => {
               onChange={handleDeviceChange}
               disabled={syncProgress.isSyncing}
             >
-              <option value="">Select a device</option>
+              <option value="">{t('attendance.selectDevice')}</option>
               {devices.map(device => (
                 <option key={device.id} value={device.id}>
                   {device.name || device.ip} ({device.type})
@@ -258,7 +260,7 @@ const Attendance = (props) => {
               onClick={fetchAttendanceFromDevice}
               disabled={!selectedDevice || isFetching}
             >
-              {isFetching ? <Spinner size="sm" /> : '📥 Fetch Records'}
+              {isFetching ? <Spinner size="sm" /> : `📥 ${t('attendance.fetchRecords')}`}
             </Button>
 
             <Button
@@ -266,7 +268,7 @@ const Attendance = (props) => {
               onClick={startSync}
               disabled={!attendanceList.length || syncProgress.isSyncing}
             >
-              {syncProgress.isSyncing ? <Spinner size="sm" /> : '🔄 Sync Records'}
+              {syncProgress.isSyncing ? <Spinner size="sm" /> : `🔄 ${t('attendance.syncRecords')}`}
             </Button>
 
             {syncProgress.isSyncing && (
@@ -274,7 +276,7 @@ const Attendance = (props) => {
                 color="danger"
                 onClick={() => setCancelRequested(true)}
               >
-                ⚠️ Cancel Sync
+                ⚠️ {t('attendance.cancelSync')}
               </Button>
             )}
           </div>
@@ -291,13 +293,13 @@ const Attendance = (props) => {
               </Progress>
               <div className="progress-details mt-2">
                 <span className="badge bg-info">
-                  Processed: {syncProgress.current}/{syncProgress.total}
+                  {t('attendance.syncProgress.processed')}: {syncProgress.current}/{syncProgress.total}
                 </span>
                 <span className="badge bg-success ms-2">
-                  Success: {syncProgress.success}
+                  {t('attendance.syncProgress.success')}: {syncProgress.success}
                 </span>
                 <span className="badge bg-danger ms-2">
-                  Failed: {syncProgress.failed}
+                  {t('attendance.syncProgress.failed')}: {syncProgress.failed}
                 </span>
               </div>
             </div>
@@ -309,10 +311,10 @@ const Attendance = (props) => {
         <Col sm="12">
           <Card body>
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h5 className="mb-0">📋 Attendance Records ({filteredAttendance.length})</h5>
+              <h5 className="mb-0">📋 {t('attendance.records')} ({filteredAttendance.length})</h5>
               <Input
                 type="text"
-                placeholder="Search by User ID, Name, IP, Date, Time..."
+                placeholder={t('attendance.searchPlaceholder')}
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 onClick={handleSearchClick}
@@ -328,10 +330,10 @@ const Attendance = (props) => {
               paginationRowsPerPageOptions={[10, 20, 50, 100, 500, filteredAttendance.length]}
               highlightOnHover
               striped
-              noDataComponent="No attendance records found"
+              noDataComponent={t('attendance.noRecords')}
               paginationComponentOptions={{
-                rowsPerPageText: 'Rows per page:',
-                rangeSeparatorText: 'of',
+                rowsPerPageText: t('common.rowsPerPage'),
+                rangeSeparatorText: t('common.of'),
               }}
             />
           </Card>

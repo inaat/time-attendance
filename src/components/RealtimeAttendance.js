@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardTitle, CardText, Col, Row, Spinner, Button } from 'reactstrap';
 import DataTable from 'react-data-table-component';
 const { ipcRenderer } = window.require('electron');
 
 const RealtimeAttendance = (props) => {
+  const { t } = useTranslation();
   const [attendanceLogs, setAttendanceLogs] = useState([]); // Real-time attendance logs
   const [loading, setLoading] = useState(false); // Loading state
   const [devices, setDevices] = useState([]); // List of devices
@@ -24,10 +26,10 @@ const RealtimeAttendance = (props) => {
 
   // Table columns configuration
   const columns = [
-    { name: 'Device IP', selector: row => row.deviceIp, sortable: true },
-    { name: 'User ID', selector: row => row.userId, sortable: true },
-    { name: 'Date', selector: row => row.date, sortable: true },
-    { name: 'Time', selector: row => row.time, sortable: true },
+    { name: t('realtime.columns.deviceIp'), selector: row => row.deviceIp, sortable: true },
+    { name: t('realtime.columns.userId'), selector: row => row.userId, sortable: true },
+    { name: t('realtime.columns.date'), selector: row => row.date, sortable: true },
+    { name: t('realtime.columns.time'), selector: row => row.time, sortable: true },
   ];
 
   // Start real-time monitoring when devices are fetched
@@ -54,15 +56,15 @@ const RealtimeAttendance = (props) => {
     <React.Fragment>
       <Row>
         <Col sm="12">
-          <Button onClick={props.goBackButton} className="primary">BACK</Button>
+          <Button onClick={props.goBackButton} color="primary" size="sm">{t('common.back')}</Button>
           <Card body>
-            <CardTitle tag="h5">Real-Time Attendance</CardTitle>
-            <CardText>View real-time attendance logs from multiple devices</CardText>
+            <CardTitle tag="h5">{t('realtime.title')}</CardTitle>
+            <CardText>{t('realtime.subtitle')}</CardText>
           </Card>
         </Col>
       </Row>
 
-      
+
 
       <Row>
         <Col sm="12">
@@ -70,12 +72,17 @@ const RealtimeAttendance = (props) => {
             <Spinner color="primary" />
           ) : (
             <DataTable
-              title="Real-Time Attendance Logs"
+              title={t('realtime.logsTitle')}
               columns={columns}
               data={attendanceLogs}
               responsive
               highlightOnHover
               pagination
+              noDataComponent={t('common.noData')}
+              paginationComponentOptions={{
+                rowsPerPageText: t('common.rowsPerPage'),
+                rangeSeparatorText: t('common.of'),
+              }}
             />
           )}
         </Col>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Card, CardTitle, CardText, Col, Row, Button, Input, FormGroup, Label, Modal, ModalHeader, ModalBody, ModalFooter, Spinner
 } from 'reactstrap';
@@ -7,6 +8,7 @@ const { ipcRenderer } = window.require('electron');
 const axios = require('axios');
 
 const User = (props) => {
+  const { t } = useTranslation();
   const [devices, setDevices] = useState([]); // List of devices
   const [selectedDevice, setSelectedDevice] = useState(null); // Selected device
   const [userList, setUserList] = useState([]); // List of users for the selected device
@@ -36,43 +38,43 @@ const User = (props) => {
   };
 
   const columns = [
-    { name: 'Card Number', selector: row => row.cardno, sortable: true },
-    { name: 'Name', selector: row => row.name, sortable: true },
-    { name: 'User ID', selector: row => row.userId, sortable: true },
+    { name: t('users.columns.cardNumber'), selector: row => row.cardno, sortable: true },
+    { name: t('users.columns.name'), selector: row => row.name, sortable: true },
+    { name: t('users.columns.userId'), selector: row => row.userId, sortable: true },
     {
-      name: 'Role',
+      name: t('users.columns.role'),
       selector: row => row.role,
       sortable: true,
-      cell: row => (row.role === 0 ? 'User' : 'Admin'),
+      cell: row => (row.role === 0 ? t('users.roles.user') : t('users.roles.admin')),
     },
-    { name: 'UID', selector: row => row.uid, sortable: true },
-    { name: 'Employee Status', selector: row => row.employee_status, sortable: true },
+    { name: t('users.columns.uid'), selector: row => row.uid, sortable: true },
+    { name: t('users.columns.employeeStatus'), selector: row => row.employee_status, sortable: true },
     {
-      name: 'Status',
+      name: t('users.columns.status'),
       selector: row => row.status,
       sortable: true,
       cell: row => (
         <span style={{ color: row.status === 'not_sync' ? 'red' : 'green' }}>
-          {row.status === 'not_sync' ? 'Not Synced' : 'Synced'}
+          {row.status === 'not_sync' ? t('users.status.notSynced') : t('users.status.synced')}
         </span>
       ),
     },
     {
-      name: 'Actions',
+      name: t('users.columns.actions'),
       cell: row => (
         <div>
           {row.status === 'sync' ? (
             <>
               <Button size="sm" color="warning" onClick={() => handleEdit(row)}>
-                Edit
+                {t('users.actions.edit')}
               </Button>{' '}
               <Button size="sm" color="danger" onClick={() => handleDelete(row)}>
-                Delete
+                {t('users.actions.delete')}
               </Button>
             </>
           ) : (
             <Button size="sm" color="primary" onClick={() => handleSync(row)}>
-              Sync
+              {t('users.actions.sync')}
             </Button>
           )}
         </div>
@@ -359,14 +361,13 @@ const User = (props) => {
       {/* Device Selection */}
       <Row>
         <Col sm="12">
-          <Card body>
-                        <Button onClick={props.goBackButton} color="primary">
-                                  BACK
-                                </Button>{" "}
-            
-            <CardTitle tag="h5">Device Selection</CardTitle>
+          <Button onClick={props.goBackButton} color="primary" size="sm">
+            {t('common.back')}
+          </Button>
+          <Card body className="mt-3">
+            <CardTitle tag="h5">{t('users.deviceSelection')}</CardTitle>
             <CardText>
-              Select a device to manage users.
+              {t('users.selectDevice')}
             </CardText>
             <Input
               type="select"
@@ -375,7 +376,7 @@ const User = (props) => {
               value={selectedDevice ? selectedDevice.id : ''}
               onChange={handleDeviceChange}
             >
-              <option value="">Select a device</option>
+              <option value="">{t('users.selectDevicePlaceholder')}</option>
               {devices.map(device => (
                 <option key={device.id} value={device.id}>
                   {device.name || device.ip}
@@ -402,29 +403,29 @@ const User = (props) => {
       <Row style={{ marginTop: '20px' }}>
         <Col sm="6">
           <Button color="primary" block onClick={fetchUsersFromDevice} disabled={!selectedDevice || loading}>
-            Fetch Users
+            {t('users.fetchUsers')}
           </Button>
         </Col>
         <Col sm="6">
           <Button color="success" block onClick={SyncUsersToDevice} disabled={!selectedDevice || loading}>
-            Sync Users to Device
+            {t('users.syncUsers')}
           </Button>
         </Col>
       </Row>
       <Row style={{ marginTop: '20px' }}>
         <Col sm="4">
           <Button color="danger" block onClick={DeleteNonUsersToDevice} disabled={!selectedDevice || loading}>
-            Delete Non-Active Users
+            {t('users.deleteNonActive')}
           </Button>
         </Col>
         <Col sm="4">
           <Button color="info" block onClick={() => setIsAddModalOpen(true)} disabled={!selectedDevice || loading}>
-            Add User
+            {t('users.addUser')}
           </Button>
         </Col>
         <Col sm="4">
           <Button color="warning" block onClick={SyncSelectedUsers} disabled={!selectedDevice || loading || selectedRows.length === 0}>
-            Sync Selected ({selectedRows.length})
+            {t('users.syncSelected')} ({selectedRows.length})
           </Button>
         </Col>
       </Row>
@@ -465,10 +466,10 @@ const User = (props) => {
         <Col sm="12">
           <Card body>
             <div className="d-flex justify-content-between align-items-center mb-3">
-              <h5 className="mb-0">User List ({filteredUsers.length})</h5>
+              <h5 className="mb-0">{t('users.title')} ({filteredUsers.length})</h5>
               <Input
                 type="text"
-                placeholder="Search by User ID, Name, Card Number..."
+                placeholder={t('users.searchPlaceholder')}
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 onClick={handleSearchClick}
@@ -488,10 +489,10 @@ const User = (props) => {
               highlightOnHover
               striped
               responsive
-              noDataComponent="No users found"
+              noDataComponent={t('common.noData')}
               paginationComponentOptions={{
-                rowsPerPageText: 'Rows per page:',
-                rangeSeparatorText: 'of',
+                rowsPerPageText: t('common.rowsPerPage'),
+                rangeSeparatorText: t('common.of'),
               }}
             />
           </Card>
@@ -500,10 +501,10 @@ const User = (props) => {
 
       {/* Add User Modal */}
       <Modal isOpen={isAddModalOpen} toggle={() => setIsAddModalOpen(!isAddModalOpen)}>
-        <ModalHeader toggle={() => setIsAddModalOpen(!isAddModalOpen)}>Add User</ModalHeader>
+        <ModalHeader toggle={() => setIsAddModalOpen(!isAddModalOpen)}>{t('users.modal.addTitle')}</ModalHeader>
         <ModalBody>
           <FormGroup>
-            <Label for="name">Name</Label>
+            <Label for="name">{t('users.modal.name')}</Label>
             <Input
               id="name"
               value={newUser.name}
@@ -511,7 +512,7 @@ const User = (props) => {
             />
           </FormGroup>
           <FormGroup>
-            <Label for="userId">User ID</Label>
+            <Label for="userId">{t('users.modal.userId')}</Label>
             <Input
               id="userId"
               value={newUser.userId}
@@ -519,7 +520,7 @@ const User = (props) => {
             />
           </FormGroup>
           <FormGroup>
-            <Label for="cardno">Card Number</Label>
+            <Label for="cardno">{t('users.modal.cardNumber')}</Label>
             <Input
               id="cardno"
               value={newUser.cardno}
@@ -527,30 +528,30 @@ const User = (props) => {
             />
           </FormGroup>
           <FormGroup>
-            <Label for="role">Role</Label>
+            <Label for="role">{t('users.modal.role')}</Label>
             <Input
               id="role"
               type="select"
               value={newUser.role}
               onChange={(e) => setNewUser({ ...newUser, role: parseInt(e.target.value) })}
             >
-              <option value="0">User</option>
-              <option value="1">Admin</option>
+              <option value="0">{t('users.roles.user')}</option>
+              <option value="1">{t('users.roles.admin')}</option>
             </Input>
           </FormGroup>
         </ModalBody>
         <ModalFooter>
-          <Button color="primary" onClick={handleAddUser}>Add</Button>{' '}
-          <Button color="secondary" onClick={() => setIsAddModalOpen(false)}>Cancel</Button>
+          <Button color="primary" onClick={handleAddUser}>{t('users.modal.add')}</Button>{' '}
+          <Button color="secondary" onClick={() => setIsAddModalOpen(false)}>{t('users.modal.cancel')}</Button>
         </ModalFooter>
       </Modal>
 
       {/* Edit User Modal */}
       <Modal isOpen={isEditModalOpen} toggle={() => setIsEditModalOpen(!isEditModalOpen)}>
-        <ModalHeader toggle={() => setIsEditModalOpen(!isEditModalOpen)}>Edit User</ModalHeader>
+        <ModalHeader toggle={() => setIsEditModalOpen(!isEditModalOpen)}>{t('users.modal.editTitle')}</ModalHeader>
         <ModalBody>
           <FormGroup>
-            <Label for="editName">Name</Label>
+            <Label for="editName">{t('users.modal.name')}</Label>
             <Input
               id="editName"
               value={editUser?.name || ''}
@@ -558,7 +559,7 @@ const User = (props) => {
             />
           </FormGroup>
           <FormGroup>
-            <Label for="editUserId">User ID</Label>
+            <Label for="editUserId">{t('users.modal.userId')}</Label>
             <Input
               id="editUserId"
               value={editUser?.userId || ''}
@@ -566,7 +567,7 @@ const User = (props) => {
             />
           </FormGroup>
           <FormGroup>
-            <Label for="editCardno">Card Number</Label>
+            <Label for="editCardno">{t('users.modal.cardNumber')}</Label>
             <Input
               id="editCardno"
               value={editUser?.cardno || ''}
@@ -574,21 +575,21 @@ const User = (props) => {
             />
           </FormGroup>
           <FormGroup>
-            <Label for="editRole">Role</Label>
+            <Label for="editRole">{t('users.modal.role')}</Label>
             <Input
               id="editRole"
               type="select"
               value={editUser?.role || 0}
               onChange={(e) => setEditUser({ ...editUser, role: parseInt(e.target.value) })}
             >
-              <option value="0">User</option>
-              <option value="1">Admin</option>
+              <option value="0">{t('users.roles.user')}</option>
+              <option value="1">{t('users.roles.admin')}</option>
             </Input>
           </FormGroup>
         </ModalBody>
         <ModalFooter>
-          <Button color="primary" onClick={handleEditSave}>Save</Button>{' '}
-          <Button color="secondary" onClick={() => setIsEditModalOpen(false)}>Cancel</Button>
+          <Button color="primary" onClick={handleEditSave}>{t('users.modal.save')}</Button>{' '}
+          <Button color="secondary" onClick={() => setIsEditModalOpen(false)}>{t('users.modal.cancel')}</Button>
         </ModalFooter>
       </Modal>
     </React.Fragment>

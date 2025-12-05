@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from 'react-i18next';
 import {
   Card,
   CardTitle,
@@ -19,24 +20,24 @@ import DataTable from "react-data-table-component";
 
 const { ipcRenderer } = window.require('electron');
 
-const columns = (handleEdit, handleDelete, testConnection) => [
+const columns = (handleEdit, handleDelete, testConnection, t) => [
   {
-    name: "ID",
+    name: t('devices.columns.id'),
     selector: (row) => row.id,
     sortable: true,
   },
   {
-    name: "IP Address",
+    name: t('devices.columns.ip'),
     selector: (row) => row.ip,
     sortable: true,
   },
   {
-    name: "Type",
+    name: t('devices.columns.type'),
     selector: (row) => row.type,
     sortable: true,
   },
   {
-    name: "URL",
+    name: t('devices.columns.url'),
     selector: (row) => row.url,
     sortable: true,
     cell: (row) => (
@@ -46,7 +47,7 @@ const columns = (handleEdit, handleDelete, testConnection) => [
     ),
   },
   {
-    name: "Get User URL",
+    name: t('devices.columns.getUserUrl'),
     selector: (row) => row.get_user_url,
     sortable: true,
     cell: (row) => (
@@ -56,22 +57,22 @@ const columns = (handleEdit, handleDelete, testConnection) => [
     ),
   },
   {
-    name: "Token",
+    name: t('devices.columns.token'),
     selector: (row) => row.token,
     sortable: true,
   },
   {
-    name: "Actions",
+    name: t('devices.columns.actions'),
     cell: (row) => (
       <div>
         <Button color="info" size="sm" onClick={() => handleEdit(row)}>
-          Edit
+          {t('devices.actions.edit')}
         </Button>{" "}
         <Button color="danger" size="sm" onClick={() => handleDelete(row)}>
-          Delete
+          {t('devices.actions.delete')}
         </Button>{" "}
         <Button color="success" size="sm" onClick={() => testConnection(row)}>
-          Test
+          {t('devices.actions.test')}
         </Button>
       </div>
     ),
@@ -79,6 +80,7 @@ const columns = (handleEdit, handleDelete, testConnection) => [
 ];
 
 const Device = (props) => {
+  const { t } = useTranslation();
   const [data, setDevices] = useState([]);
   const [modal, setModal] = useState(false);
   const [modalType, setModalType] = useState("Add");
@@ -215,18 +217,18 @@ const Device = (props) => {
     <React.Fragment>
       <Row className="mb-3">
         <Col sm="12">
-          <Button onClick={props.goBackButton} color="primary">
-            BACK
+          <Button onClick={props.goBackButton} color="primary" size="sm">
+            {t('common.back')}
           </Button>{" "}
           <Button onClick={handleAdd} color="success">
-            Add Device
+            {t('devices.addDevice')}
           </Button>
           <Card body className="mt-3">
-            <CardTitle tag="h5">View Devices</CardTitle>
+            <CardTitle tag="h5">{t('devices.title')}</CardTitle>
             <CardText>
-              Manage connected devices and their endpoints below.
+              {t('devices.subtitle')}
               <br />
-              Total devices: {data.length}
+              {t('devices.totalDevices')}: {data.length}
             </CardText>
           </Card>
         </Col>
@@ -234,24 +236,29 @@ const Device = (props) => {
       <Row>
         <Col sm="12">
           <DataTable
-            title="Device Management"
-            columns={columns(handleEdit, handleDelete, testConnection)}
+            title={t('devices.title')}
+            columns={columns(handleEdit, handleDelete, testConnection, t)}
             data={data}
             responsive
             pagination
             highlightOnHover
+            noDataComponent={t('common.noData')}
+            paginationComponentOptions={{
+              rowsPerPageText: t('common.rowsPerPage'),
+              rangeSeparatorText: t('common.of'),
+            }}
           />
         </Col>
       </Row>
 
       <Modal isOpen={modal} toggle={toggleModal} size="lg">
         <ModalHeader toggle={toggleModal}>
-          {modalType === "Add" ? "➕ Add New Device" : "✏️ Edit Device"}
+          {modalType === "Add" ? `➕ ${t('devices.modal.addTitle')}` : `✏️ ${t('devices.modal.editTitle')}`}
         </ModalHeader>
         <ModalBody>
           <Form>
             <FormGroup>
-              <Label for="id">Device ID *</Label>
+              <Label for="id">{t('devices.modal.deviceId')} *</Label>
               <Input
                 type="text"
                 name="id"
@@ -263,7 +270,7 @@ const Device = (props) => {
               />
             </FormGroup>
             <FormGroup>
-              <Label for="ip">IP Address *</Label>
+              <Label for="ip">{t('devices.modal.ipAddress')} *</Label>
               <Input
                 type="text"
                 name="ip"
@@ -276,7 +283,7 @@ const Device = (props) => {
               />
             </FormGroup>
             <FormGroup>
-              <Label for="url">Endpoint URL *</Label>
+              <Label for="url">{t('devices.modal.endpointUrl')} *</Label>
               <Input
                 type="url"
                 name="url"
@@ -288,11 +295,11 @@ const Device = (props) => {
                 required
               />
               <small className="form-text text-muted">
-                Must include protocol (http:// or https://)
+                {t('devices.modal.urlHelper')}
               </small>
             </FormGroup>
             <FormGroup>
-              <Label for="get_user_url">Get User URL *</Label>
+              <Label for="get_user_url">{t('devices.modal.getUserUrl')} *</Label>
               <Input
                 type="url"
                 name="get_user_url"
@@ -304,11 +311,11 @@ const Device = (props) => {
                 required
               />
               <small className="form-text text-muted">
-                Must include protocol (http:// or https://)
+                {t('devices.modal.urlHelper')}
               </small>
             </FormGroup>
             <FormGroup>
-              <Label for="token">Token</Label>
+              <Label for="token">{t('devices.modal.token')}</Label>
               <Input
                 type="text"
                 name="token"
@@ -318,7 +325,7 @@ const Device = (props) => {
               />
             </FormGroup>
             <FormGroup>
-              <Label for="type">Device Type</Label>
+              <Label for="type">{t('devices.modal.deviceType')}</Label>
               <Input
                 type="select"
                 name="type"
@@ -326,19 +333,19 @@ const Device = (props) => {
                 value={formData.type}
                 onChange={handleInputChange}
               >
-                <option value="student">Student</option>
-                <option value="staff">Staff</option>
-                <option value="admin">Admin</option>
+                <option value="student">{t('devices.modal.types.student')}</option>
+                <option value="staff">{t('devices.modal.types.staff')}</option>
+                <option value="admin">{t('devices.modal.types.admin')}</option>
               </Input>
             </FormGroup>
           </Form>
         </ModalBody>
         <ModalFooter>
           <Button color="primary" onClick={handleSave}>
-            {modalType === "Add" ? "Create Device" : "Save Changes"}
+            {modalType === "Add" ? t('devices.modal.create') : t('devices.modal.saveChanges')}
           </Button>{" "}
           <Button color="secondary" onClick={toggleModal}>
-            Cancel
+            {t('devices.modal.cancel')}
           </Button>
         </ModalFooter>
       </Modal>
