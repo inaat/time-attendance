@@ -120,16 +120,12 @@ const Attendance = (props) => {
             token: selectedDevice.token
           };
 
-          const response = await axios.post(selectedDevice.url, payload);
+          await axios.post(selectedDevice.url, payload);
 
-          // Accumulate counts from batch response
-          const successCount = response.data.successCount || response.data.success || 0;
-          const failedCount = response.data.failedCount || response.data.failed || 0;
+          // If request successful, count entire batch as success
+          totalSuccess += batch.length;
 
-          totalSuccess += successCount;
-          totalFailed += failedCount;
-
-          console.log(`Batch ${batchIndex + 1}/${batches.length}: ${successCount} success, ${failedCount} failed`);
+          console.log(`Batch ${batchIndex + 1}/${batches.length}: ${batch.length} records sent successfully`);
 
         } catch (error) {
           console.error(`Batch ${batchIndex + 1} failed:`, error);
