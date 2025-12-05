@@ -10,6 +10,8 @@ const Attendance = (props) => {
   const [devices, setDevices] = useState([]);
   const [selectedDevice, setSelectedDevice] = useState(null);
   const [attendanceList, setAttendanceList] = useState([]);
+  const [filteredAttendance, setFilteredAttendance] = useState([]);
+  const [searchText, setSearchText] = useState('');
   const [isFetching, setIsFetching] = useState(false);
   const [syncProgress, setSyncProgress] = useState({
     total: 0,
@@ -19,6 +21,15 @@ const Attendance = (props) => {
     isSyncing: false
   });
   const [cancelRequested, setCancelRequested] = useState(false);
+
+  // Fix focus for search input
+  const handleSearchClick = async () => {
+    try {
+      await ipcRenderer.invoke('window-refocus');
+    } catch (error) {
+      console.error('Focus fix failed:', error);
+    }
+  };
 
   const columns = [
     { name: 'IP', selector: row => row.ip, sortable: true },
@@ -41,6 +52,22 @@ const Attendance = (props) => {
     };
     fetchDevices();
   }, []);
+
+  // Filter attendance list based on search text
+  useEffect(() => {
+    if (searchText === '') {
+      setFilteredAttendance(attendanceList);
+    } else {
+      const filtered = attendanceList.filter(item =>
+        item.userId?.toString().toLowerCase().includes(searchText.toLowerCase()) ||
+        item.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.ip?.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.date?.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.time?.toLowerCase().includes(searchText.toLowerCase())
+      );
+      setFilteredAttendance(filtered);
+    }
+  }, [searchText, attendanceList]);
 
   const fetchAttendanceFromDevice = async () => {
     if (!selectedDevice) return;
@@ -280,15 +307,34 @@ const Attendance = (props) => {
 
       <Row>
         <Col sm="12">
-          <DataTable
-            title="📋 Attendance Records"
-            columns={columns}
-            data={attendanceList}
-            responsive
-            pagination
-            highlightOnHover
-            noDataComponent="No attendance records found"
-          />
+          <Card body>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5 className="mb-0">📋 Attendance Records ({filteredAttendance.length})</h5>
+              <Input
+                type="text"
+                placeholder="Search by User ID, Name, IP, Date, Time..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onClick={handleSearchClick}
+                style={{ maxWidth: '400px' }}
+              />
+            </div>
+            <DataTable
+              columns={columns}
+              data={filteredAttendance}
+              responsive
+              pagination
+              paginationPerPage={10}
+              paginationRowsPerPageOptions={[10, 20, 50, 100, 500, filteredAttendance.length]}
+              highlightOnHover
+              striped
+              noDataComponent="No attendance records found"
+              paginationComponentOptions={{
+                rowsPerPageText: 'Rows per page:',
+                rangeSeparatorText: 'of',
+              }}
+            />
+          </Card>
         </Col>
       </Row>
     </React.Fragment>

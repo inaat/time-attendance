@@ -96,6 +96,21 @@ const Device = (props) => {
     fetchDevices();
   }, []);
 
+  // Fix focus when modal opens
+  useEffect(() => {
+    const fixFocus = async () => {
+      if (modal) {
+        try {
+          await new Promise(resolve => setTimeout(resolve, 100)); // Wait for modal to render
+          await ipcRenderer.invoke('window-refocus');
+        } catch (error) {
+          console.error('Focus fix failed:', error);
+        }
+      }
+    };
+    fixFocus();
+  }, [modal]);
+
   const fetchDevices = () => {
     ipcRenderer.invoke('fetch-all-devices')
       .then(data => {

@@ -10,6 +10,9 @@ const User = (props) => {
   const [devices, setDevices] = useState([]); // List of devices
   const [selectedDevice, setSelectedDevice] = useState(null); // Selected device
   const [userList, setUserList] = useState([]); // List of users for the selected device
+  const [filteredUsers, setFilteredUsers] = useState([]); // Filtered user list for search
+  const [searchText, setSearchText] = useState(''); // Search text
+  const [selectedRows, setSelectedRows] = useState([]); // Selected rows for bulk sync
   const [loading, setLoading] = useState(false); // Loading state for fetching users
   const [editUser, setEditUser] = useState(null); // User being edited
   const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Edit modal visibility
@@ -22,6 +25,15 @@ const User = (props) => {
     uid: ''
   });
   const [progress, setProgress] = useState(0); // Progress state
+
+  // Fix focus for search input
+  const handleSearchClick = async () => {
+    try {
+      await ipcRenderer.invoke('window-refocus');
+    } catch (error) {
+      console.error('Focus fix failed:', error);
+    }
+  };
 
   const columns = [
     { name: 'Card Number', selector: row => row.cardno, sortable: true },
@@ -82,6 +94,36 @@ const User = (props) => {
 
     fetchDevices();
   }, []);
+
+  // Filter users based on search text
+  useEffect(() => {
+    if (searchText === '') {
+      setFilteredUsers(userList);
+    } else {
+      const filtered = userList.filter(user =>
+        user.userId?.toString().toLowerCase().includes(searchText.toLowerCase()) ||
+        user.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+        user.cardno?.toString().toLowerCase().includes(searchText.toLowerCase()) ||
+        user.uid?.toString().toLowerCase().includes(searchText.toLowerCase())
+      );
+      setFilteredUsers(filtered);
+    }
+  }, [searchText, userList]);
+
+  // Fix focus when modals open
+  useEffect(() => {
+    const fixFocus = async () => {
+      if (isAddModalOpen || isEditModalOpen) {
+        try {
+          await new Promise(resolve => setTimeout(resolve, 100)); // Wait for modal to render
+          await ipcRenderer.invoke('window-refocus');
+        } catch (error) {
+          console.error('Focus fix failed:', error);
+        }
+      }
+    };
+    fixFocus();
+  }, [isAddModalOpen, isEditModalOpen]);
 
   // Fetch users for the selected device
   const fetchUsersFromDevice = async () => {
@@ -281,6 +323,37 @@ const User = (props) => {
     }
   };
 
+  const SyncSelectedUsers = async () => {
+    if (!selectedDevice || selectedRows.length === 0) {
+      alert('Please select users to sync!');
+      return;
+    }
+
+    setLoading(true);
+    setProgress(0);
+
+    try {
+      const totalUsers = selectedRows.length;
+      let processedUsers = 0;
+
+      for (const user of selectedRows) {
+        await ipcRenderer.invoke('add-user-to-device', { device: selectedDevice, user });
+        processedUsers++;
+        setProgress((processedUsers / totalUsers) * 100);
+      }
+
+      await fetchUsersFromDevice();
+      setSelectedRows([]);
+      alert(`${totalUsers} user(s) synced successfully!`);
+    } catch (error) {
+      console.error('Failed to sync selected users:', error.message);
+      alert(`Failed to sync users: ${error.message}`);
+    } finally {
+      setLoading(false);
+      setProgress(0);
+    }
+  };
+
   return (
     <React.Fragment>
       {/* Device Selection */}
@@ -339,14 +412,19 @@ const User = (props) => {
         </Col>
       </Row>
       <Row style={{ marginTop: '20px' }}>
-        <Col sm="6">
+        <Col sm="4">
           <Button color="danger" block onClick={DeleteNonUsersToDevice} disabled={!selectedDevice || loading}>
             Delete Non-Active Users
           </Button>
         </Col>
-        <Col sm="6">
+        <Col sm="4">
           <Button color="info" block onClick={() => setIsAddModalOpen(true)} disabled={!selectedDevice || loading}>
             Add User
+          </Button>
+        </Col>
+        <Col sm="4">
+          <Button color="warning" block onClick={SyncSelectedUsers} disabled={!selectedDevice || loading || selectedRows.length === 0}>
+            Sync Selected ({selectedRows.length})
           </Button>
         </Col>
       </Row>
@@ -385,12 +463,38 @@ const User = (props) => {
       {/* User Table */}
       <Row style={{ marginTop: '20px' }}>
         <Col sm="12">
-          <DataTable
-            title="User List"
-            columns={columns}
-            data={userList}
-            pagination
-          />
+          <Card body>
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <h5 className="mb-0">User List ({filteredUsers.length})</h5>
+              <Input
+                type="text"
+                placeholder="Search by User ID, Name, Card Number..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onClick={handleSearchClick}
+                style={{ maxWidth: '400px' }}
+              />
+            </div>
+            <DataTable
+              columns={columns}
+              data={filteredUsers}
+              pagination
+              paginationPerPage={10}
+              paginationRowsPerPageOptions={[10, 20, 50, 100, filteredUsers.length]}
+              selectableRows
+              selectableRowsHighlight
+              onSelectedRowsChange={(state) => setSelectedRows(state.selectedRows)}
+              clearSelectedRows={selectedRows.length === 0}
+              highlightOnHover
+              striped
+              responsive
+              noDataComponent="No users found"
+              paginationComponentOptions={{
+                rowsPerPageText: 'Rows per page:',
+                rangeSeparatorText: 'of',
+              }}
+            />
+          </Card>
         </Col>
       </Row>
 
