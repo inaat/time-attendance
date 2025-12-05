@@ -253,7 +253,7 @@ const Device = (props) => {
 
       <Modal isOpen={modal} toggle={toggleModal} size="lg">
         <ModalHeader toggle={toggleModal}>
-          {modalType === "Add" ? `➕ ${t('devices.modal.addTitle')}` : `✏️ ${t('devices.modal.editTitle')}`}
+          {modalType === "Add" ? t('devices.modal.addTitle') : t('devices.modal.editTitle')}
         </ModalHeader>
         <ModalBody>
           <Form>

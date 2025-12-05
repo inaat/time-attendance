@@ -152,6 +152,29 @@
   text-align: right;
 }
 
+/* RTL Modal Support */
+[dir="rtl"] .modal-header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .modal-header .btn-close {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+[dir="rtl"] .modal-footer {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .modal-footer > * {
+  margin-left: 0;
+  margin-right: 0.25rem;
+}
+
+[dir="rtl"] .modal-footer > *:first-child {
+  margin-right: 0;
+}
+
 /* Main Content */
 .main-content {
   flex: 1;
@@ -268,6 +291,21 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(to right, #e2e8f0 4%, #cbd5e0 25%, #e2e8f0 36%);
+  background-size: 1000px 100%;
 }
 
 /* Scrollbar Styles */
