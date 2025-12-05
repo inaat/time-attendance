@@ -82,13 +82,13 @@ const Device = (props) => {
   const [data, setDevices] = useState([]);
   const [modal, setModal] = useState(false);
   const [modalType, setModalType] = useState("Add");
-  const [formData, setFormData] = useState({ 
-    id: "", 
-    ip: "", 
-    url: "", 
-    get_user_url: "", 
+  const [formData, setFormData] = useState({
+    id: "",
+    ip: "",
+    url: "",
+    get_user_url: "",
     type: "student",
-    token: "" 
+    token: ""
   });
   const [selectedRow, setSelectedRow] = useState(null);
 

@@ -3,7 +3,7 @@ const axios = require('axios');
 
 const ZKLib = require('../node_zklib/zklib');
 const path = require('path');
-const isDev = require('electron-is-dev');
+const isDev = !app.isPackaged;
 
 const {
   getAllDevices,
@@ -15,6 +15,7 @@ const { Console } = require('console');
 
 let mainWindow;
 let tray;
+let focusBooster;
 
 // Store active ZKLib instances for each device
 const activeZKInstances = {};
@@ -137,7 +138,7 @@ function createWindow() {
     icon: image,
   });
 
-  mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../build/index.html')}`);
+  mainWindow.loadURL(isDev ? 'http://localhost:3000' : `file://${path.join(__dirname, '../dist/index.html')}`);
 
   if (isDev) {
     mainWindow.webContents.openDevTools();
@@ -154,28 +155,42 @@ function createWindow() {
 function createTrayIcon() {
   const iconPath = path.join(__dirname, 'trayicon.png');
   const trayIcon = nativeImage.createFromPath(iconPath);
-  
+
   tray = new Tray(trayIcon);
-  
+
   const contextMenu = Menu.buildFromTemplate([
-    { 
-      label: 'Show App', 
+    {
+      label: 'Show App',
       click: () => {
         if (mainWindow) {
           mainWindow.show();
         }
-      } 
+      }
     },
-    { 
-      label: 'Exit', 
+    {
+      label: 'Exit',
       click: () => {
         stopRealtimeMonitoring().then(() => app.quit());
-      } 
+      }
     }
   ]);
-  
+
   tray.setToolTip('Attendance Monitoring');
   tray.setContextMenu(contextMenu);
+}
+
+// Create hidden focus booster window (for keyboard focus fix)
+function createFocusBooster() {
+  focusBooster = new BrowserWindow({
+    width: 1,
+    height: 1,
+    show: false,
+    frame: false,
+    skipTaskbar: true,
+    transparent: true,
+    x: -100, // Off-screen position
+    y: -100
+  });
 }
 
 // IPC Handlers for Device Management
@@ -370,10 +385,41 @@ ipcMain.handle('delete-device', async (event, id) => {
   }
 });
 
+// Fix for Electron keyboard focus issue - force window to refocus using hidden booster
+ipcMain.handle('window-refocus', async () => {
+  try {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return { success: false, message: 'Window not available' };
+    }
+
+    if (!focusBooster || focusBooster.isDestroyed()) {
+      return { success: false, message: 'Focus booster not available' };
+    }
+
+    // Step 1 - Force OS to switch focus invisibly
+    focusBooster.showInactive(); // No visual flash
+    focusBooster.focus();        // OS keyboard resets focus
+
+    // Step 2 - Immediately return focus to main window
+    setTimeout(() => {
+      if (!focusBooster.isDestroyed() && !mainWindow.isDestroyed()) {
+        focusBooster.hide();           // Stays hidden, no flash
+        mainWindow.focus();
+        mainWindow.webContents.focus();
+      }
+    }, 20); // Needs ~20ms on Windows for OS to register the focus change
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: error.message };
+  }
+});
+
 // App lifecycle events
 app.on('ready', () => {
   createWindow();
   createTrayIcon();
+  createFocusBooster();
   initializeBackgroundMonitoring();
 });
 

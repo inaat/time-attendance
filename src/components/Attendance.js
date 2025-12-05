@@ -81,68 +81,97 @@ const Attendance = (props) => {
       isSyncing: true
     });
 
+    const BATCH_SIZE = 1000; // Process 1000 records per batch
+    let totalSuccess = 0;
+    let totalFailed = 0;
+
     try {
-      let successCount = 0;
-      let failedCount = 0;
-
-      // Sync all attendance records
-      for (const [index, record] of attendanceList.entries()) {
-        if (cancelRequested) break;
-
-        try {
-          const payload = selectedDevice.type === 'staff' 
-            ? { employee_id: record.userId, date: `${record.date} ${record.time}` }
-            : { student_id: record.userId, date: `${record.date} ${record.time}` };
-
-          await axios.post(selectedDevice.url, payload);
-          successCount++;
-        } catch (apiError) {
-          failedCount++;
-          console.error(`Sync failed for ${record.userId}:`, apiError.message);
-        }
-
-        setSyncProgress(prev => ({
-          ...prev,
-          current: index + 1,
-          success: successCount,
-          failed: failedCount
-        }));
+      // Split records into batches
+      const batches = [];
+      for (let i = 0; i < attendanceList.length; i += BATCH_SIZE) {
+        batches.push(attendanceList.slice(i, i + BATCH_SIZE));
       }
 
+      // Process each batch
+      for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+        if (cancelRequested) break;
+
+        const batch = batches[batchIndex];
+
+        // Prepare batch data
+        const batchData = batch.map(record => {
+          if (selectedDevice.type === 'staff') {
+            return {
+              employee_id: record.userId,
+              date: `${record.date} ${record.time}`
+            };
+          } else {
+            return {
+              student_id: record.userId,
+              date: `${record.date} ${record.time}`
+            };
+          }
+        });
+
+        try {
+          // Send batch request with token
+          const payload = {
+            data: batchData,
+            token: selectedDevice.token
+          };
+
+          const response = await axios.post(selectedDevice.url, payload);
+
+          // Accumulate counts from batch response
+          const successCount = response.data.successCount || response.data.success || 0;
+          const failedCount = response.data.failedCount || response.data.failed || 0;
+
+          totalSuccess += successCount;
+          totalFailed += failedCount;
+
+          console.log(`Batch ${batchIndex + 1}/${batches.length}: ${successCount} success, ${failedCount} failed`);
+
+        } catch (error) {
+          console.error(`Batch ${batchIndex + 1} failed:`, error);
+          totalFailed += batch.length; // Count entire batch as failed
+        }
+
+        // Update progress
+        setSyncProgress({
+          total: attendanceList.length,
+          current: (batchIndex + 1) * BATCH_SIZE > attendanceList.length
+            ? attendanceList.length
+            : (batchIndex + 1) * BATCH_SIZE,
+          success: totalSuccess,
+          failed: totalFailed,
+          isSyncing: true
+        });
+      }
+
+      setSyncProgress(prev => ({ ...prev, isSyncing: false }));
+
       // Clear attendance logs after successful sync
-      if (!cancelRequested && syncProgress.current === syncProgress.total) {
+      if (!cancelRequested) {
         const confirmClear = window.confirm(
-          `Sync completed. Clear attendance logs from ${selectedDevice.ip}?`
+          `Sync completed: ${totalSuccess} succeeded, ${totalFailed} failed.\nClear attendance logs from ${selectedDevice.ip}?`
         );
 
         if (confirmClear) {
           try {
-            // const clearResult = await ipcRenderer.invoke('clear-attendance-log', { 
-            //   device: selectedDevice
-            // });
-
-            //if (clearResult.success) {
-            //  alert('Attendance logs cleared successfully from device');
-              setAttendanceList([]); // Clear local attendance list
-              await fetchAttendanceFromDevice(); // Refresh attendance list
-            // } else {
-            //   alert(`Failed to clear logs: ${clearResult.message}`);
-            // }
+            setAttendanceList([]);
+            await fetchAttendanceFromDevice();
           } catch (error) {
             alert(`Error clearing logs: ${error.message}`);
           }
         }
       }
+
+      alert(`Sync completed: ${totalSuccess} succeeded, ${totalFailed} failed`);
+
     } catch (error) {
       console.error('Sync process failed:', error);
-    } finally {
+      alert(`Sync failed: ${error.message}`);
       setSyncProgress(prev => ({ ...prev, isSyncing: false }));
-      
-      if (cancelRequested) {
-        alert('Sync cancelled by user');
-      } else {
-        alert(`Sync completed: ${syncProgress.success} succeeded, ${syncProgress.failed} failed`);
-      }
     }
   };
 

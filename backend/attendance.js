@@ -97,9 +97,7 @@ function registerAttendance(device){
             }
         }
 
-        // delete the data in machine
-        // You should do this when there are too many data in the machine, this issue can slow down machine 
-        //zk.clearAttendanceLog();
+    
 
 
         // Get all logs in the machine 
@@ -123,31 +121,7 @@ function registerAttendance(device){
 }
 
 
-// function saveAttendanceData(attendanceItems,type){
-//     return new Promise((resolve,reject)=>{
-       
-//         attendanceItems.forEach(attendance=>{
-//             const newItem = {
-//                 Name: attendance.deviceUserId,
-//                 user_id: attendance.deviceUserId,
-//                 recordTime:reformatUTCDates(attendance.recordTime),
-//                 ip: attendance.ip,
-//                 type:type,
-//                 dailyCount: attendance.Count,   
-//                 synced:false,
-//                 closed: false
-//             }
-         
-//             knex('attendances').insert(newItem).then((response) => { 
-//                  console.log('recorded attendance item', response)
-//             })
-//             .catch(err=>{
-//                 console.log('failed to save attendance item' + err)
-//             })
-//         })
-//         resolve('saved the attendance data in system')
-//     })
-// }
+
 function saveAttendanceData(attendanceItems, type) {
     return new Promise((resolve, reject) => {
         const insertPromises = attendanceItems.map(async (attendance) => {
@@ -342,6 +316,93 @@ const deleteDevice = async (id) => {
     }
 };
 
+// Batch sync attendance records
+const batchSyncAttendance = async (attendanceRecords) => {
+    let successCount = 0;
+    let failedCount = 0;
+    const errors = [];
+    const processedRecords = [];
+
+    // Process each attendance record
+    for (const record of attendanceRecords) {
+        try {
+            const { user_id, recordTime, ip, type, dailyCount, name } = record;
+
+            // Validate required fields
+            if (!user_id || !recordTime) {
+                failedCount++;
+                errors.push({
+                    record,
+                    error: 'Missing required fields: user_id or recordTime'
+                });
+                continue;
+            }
+
+            // Format the record time
+            const formattedRecordTime = reformatUTCDates(recordTime);
+
+            // Check if record already exists
+            const existingRecord = await knex('attendances')
+                .where({
+                    user_id: user_id,
+                    recordTime: formattedRecordTime,
+                    type: type || 4
+                })
+                .first();
+
+            if (existingRecord) {
+                console.log(`Record already exists for user ${user_id} at ${formattedRecordTime}`);
+                failedCount++;
+                errors.push({
+                    record,
+                    error: 'Duplicate record - already exists'
+                });
+                continue;
+            }
+
+            // Insert new attendance record
+            const newRecord = {
+                name: name || null,
+                user_id: user_id,
+                recordTime: formattedRecordTime,
+                ip: ip || null,
+                type: type || 4,
+                dailyCount: dailyCount || null,
+                synced: true, // Mark as synced since it's coming from batch sync
+                closed: false
+            };
+
+            const [insertedId] = await knex('attendances').insert(newRecord);
+
+            successCount++;
+            processedRecords.push({
+                id: insertedId,
+                user_id: user_id,
+                recordTime: formattedRecordTime
+            });
+
+            console.log(`Successfully synced attendance for user ${user_id}`);
+
+        } catch (error) {
+            failedCount++;
+            errors.push({
+                record,
+                error: error.message
+            });
+            console.error('Error processing attendance record:', error);
+        }
+    }
+
+    return {
+        success: true,
+        total: attendanceRecords.length,
+        successCount,
+        failedCount,
+        processedRecords,
+        errors: errors.length > 0 ? errors : undefined
+    };
+};
+
 module.exports.registerAttendance = registerAttendance
 module.exports.getAttendancesByDate = getAttendancesByDate
 module.exports.getAllAttendance = getAllAttendance
@@ -350,3 +411,4 @@ module.exports.getAllDevices = getAllDevices
 module.exports.addDevice = addDevice
 module.exports.editDevice = editDevice
 module.exports.deleteDevice = deleteDevice
+module.exports.batchSyncAttendance = batchSyncAttendance
