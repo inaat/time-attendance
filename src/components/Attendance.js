@@ -143,10 +143,12 @@ const Attendance = (props) => {
         });
 
         try {
-          // Send batch request with token
+          // Send batch request with token, machine_id, and serial_number
           const payload = {
             data: batchData,
-            token: selectedDevice.token
+            token: selectedDevice.token,
+            machine_id: selectedDevice.machine_id,
+            serial_number: selectedDevice.serial_number
           };
 
           await axios.post(selectedDevice.url, payload);

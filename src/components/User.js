@@ -140,6 +140,8 @@ const User = (props) => {
           params: {
             type: selectedDevice.type,
             token: selectedDevice.token,
+            machine_id: selectedDevice.machine_id,
+            serial_number: selectedDevice.serial_number
           },
         });
         const apiData = apiResponse.data;

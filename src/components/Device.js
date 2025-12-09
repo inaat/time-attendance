@@ -25,6 +25,24 @@ const columns = (handleEdit, handleDelete, testConnection, t) => [
     name: t('devices.columns.id'),
     selector: (row) => row.id,
     sortable: true,
+    width: '80px',
+  },
+  {
+    name: 'Machine ID',
+    selector: (row) => row.machine_id,
+    sortable: true,
+    width: '120px',
+  },
+  {
+    name: 'Serial Number',
+    selector: (row) => row.serial_number,
+    sortable: true,
+    width: '180px',
+    cell: (row) => (
+      <span title={row.serial_number} style={{ fontSize: '0.85rem' }}>
+        {row.serial_number || '-'}
+      </span>
+    ),
   },
   {
     name: t('devices.columns.ip'),
@@ -86,6 +104,8 @@ const Device = (props) => {
   const [modalType, setModalType] = useState("Add");
   const [formData, setFormData] = useState({
     id: "",
+    machine_id: "",
+    serial_number: "",
     ip: "",
     url: "",
     get_user_url: "",
@@ -138,6 +158,28 @@ const Device = (props) => {
     }
   };
 
+  const getDeviceInfo = async () => {
+    if (!formData.ip) {
+      alert('Please enter an IP address first');
+      return;
+    }
+
+    try {
+      const result = await ipcRenderer.invoke('get-device-info', { ip: formData.ip });
+      if (result.success && result.serialNumber) {
+        setFormData({ ...formData, serial_number: result.serialNumber });
+        alert(`✅ Serial Number: ${result.serialNumber}\n\nDevice info retrieved successfully!`);
+      } else if (result.success && !result.serialNumber) {
+        alert('⚠️ Connected but no serial number found in device info');
+      } else {
+        alert(`❌ Failed to get device info: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Get device info failed:', error);
+      alert(`🚨 Error getting device info: ${error.message}`);
+    }
+  };
+
   const toggleModal = () => setModal(!modal);
 
   const handleInputChange = (e) => {
@@ -147,7 +189,7 @@ const Device = (props) => {
 
   const handleAdd = () => {
     setModalType("Add");
-    setFormData({ id: "", ip: "", url: "", get_user_url: "", type: "student", token: "" });
+    setFormData({ id: "", machine_id: "", serial_number: "", ip: "", url: "", get_user_url: "", type: "student", token: "" });
     toggleModal();
   };
 
@@ -175,11 +217,20 @@ const Device = (props) => {
   };
 
   const validateForm = () => {
-    if (!formData.id || !formData.ip || !formData.url || !formData.get_user_url) {
+    if (!formData.id || !formData.machine_id || !formData.ip || !formData.url || !formData.get_user_url) {
       alert('Please fill in all required fields');
       return false;
     }
-    
+
+    // Check if machine_id is unique
+    const existingDevice = data.find(device =>
+      device.machine_id === formData.machine_id && device.id !== formData.id
+    );
+    if (existingDevice) {
+      alert(`Machine ID ${formData.machine_id} is already used by device "${existingDevice.id}". Please use a unique Machine ID.`);
+      return false;
+    }
+
     try {
       new URL(formData.url);
       new URL(formData.get_user_url);
@@ -268,6 +319,9 @@ const Device = (props) => {
                 disabled={modalType === "Edit"}
                 required
               />
+              <small className="form-text text-muted">
+                Internal database ID (cannot be changed after creation)
+              </small>
             </FormGroup>
             <FormGroup>
               <Label for="ip">{t('devices.modal.ipAddress')} *</Label>
@@ -280,7 +334,52 @@ const Device = (props) => {
                 required
                 pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
                 title="Enter a valid IPv4 address"
+                placeholder="e.g., 192.168.1.201"
               />
+              <small className="form-text text-muted">
+                Enter IP address first to fetch device information
+              </small>
+            </FormGroup>
+            <FormGroup>
+              <Label for="serial_number">Device Serial Number (SN) ✅</Label>
+              <div className="d-flex gap-2">
+                <Input
+                  type="text"
+                  name="serial_number"
+                  id="serial_number"
+                  value={formData.serial_number}
+                  onChange={handleInputChange}
+                  placeholder="e.g., ZK-F22-9K23A7D891"
+                  readOnly
+                  style={{ backgroundColor: '#f8f9fa' }}
+                />
+                <Button
+                  color="info"
+                  onClick={getDeviceInfo}
+                  disabled={!formData.ip}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  Get Info
+                </Button>
+              </div>
+              <small className="form-text text-muted">
+                Factory Serial Number - Click "Get Info" to fetch from device
+              </small>
+            </FormGroup>
+            <FormGroup>
+              <Label for="machine_id">Machine ID (Physical Device ID) *</Label>
+              <Input
+                type="text"
+                name="machine_id"
+                id="machine_id"
+                value={formData.machine_id}
+                onChange={handleInputChange}
+                placeholder="e.g., Branch101, Branch201, Device301"
+                required
+              />
+              <small className="form-text text-muted">
+                Set the unique Machine ID from the physical device (e.g., Branch101, Branch201, etc.)
+              </small>
             </FormGroup>
             <FormGroup>
               <Label for="url">{t('devices.modal.endpointUrl')} *</Label>

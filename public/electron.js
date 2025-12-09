@@ -35,6 +35,9 @@ async function initializeBackgroundMonitoring() {
     console.error('Background monitoring initialization failed:', error);
   }
 }
+// Store user maps for each device
+const deviceUserMaps = {};
+
 // Function to start real-time monitoring
 const startRealtimeMonitoring = async (devices) => {
   for (let index = 0; index < devices.length; index++) {
@@ -49,6 +52,22 @@ const startRealtimeMonitoring = async (devices) => {
       await zkInstance.createSocket();
       console.log(`Connection established with ${device.ip}!`);
 
+      // Fetch users once to get names
+      try {
+        const users = await zkInstance.getUsers();
+        const userMap = {};
+        if (users && users.data && Array.isArray(users.data)) {
+          users.data.forEach(user => {
+            userMap[user.userId] = user.name || user.userId;
+          });
+        }
+        deviceUserMaps[device.ip] = userMap;
+        console.log(`Fetched ${Object.keys(userMap).length} users for ${device.ip}`);
+      } catch (userError) {
+        console.error(`Failed to fetch users for ${device.ip}:`, userError);
+        deviceUserMaps[device.ip] = {};
+      }
+
       // Register real-time event listener
       zkInstance.getRealTimeLogs(async (err, data) => {
         if (err) {
@@ -59,10 +78,14 @@ const startRealtimeMonitoring = async (devices) => {
         console.log('Attendance From: ', zkInstance.ip);
         console.log({ Attendance: data });
 
+        // Get user name from the map
+        const userName = deviceUserMaps[device.ip][data.userId] || data.userId;
+
         // Prepare the formatted log
         const formattedLog = {
           deviceIp: device.ip,
           userId: data.userId,
+          name: userName,
           date: new Date(data.attTime).toISOString().split('T')[0],
           time: new Date(data.attTime).toTimeString().split(' ')[0],
         };
@@ -72,20 +95,24 @@ const startRealtimeMonitoring = async (devices) => {
           // Send data to the API endpoint
           const response = await axios.post(device.url, {
             employee_id: data.userId,
-            token:device.token,
+            token: device.token,
             date: `${formattedLog.date} ${formattedLog.time}`,
+            machine_id: device.machine_id,
+            serial_number: device.serial_number
           });
-          
+
 
           console.log(`API Response for ${device.ip}  , ${device.url}:`, response.data);
         }else{
           // Send data to the API endpoint
           const response = await axios.post(device.url, {
             student_id: data.userId,
-            token:device.token,
+            token: device.token,
             date: `${formattedLog.date} ${formattedLog.time}`,
+            machine_id: device.machine_id,
+            serial_number: device.serial_number
           });
-          
+
 
           console.log(`API Response for ${device.ip}  , ${device.url}:`, response.data);
         }
@@ -227,12 +254,77 @@ ipcMain.handle('test-device-connection', async (event, device) => {
   }
 });
 
+// Get Device Info (Serial Number, etc.)
+ipcMain.handle('get-device-info', async (event, device) => {
+  try {
+    const zk = new ZKLib(device.ip, 4370, 10000, 4000);
+    await zk.createSocket();
+
+    // Get basic info (user counts, log counts, etc.)
+    const deviceInfo = await zk.getInfo();
+    console.log('Device Info:', deviceInfo);
+
+    // Get Serial Number using CMD_OPTIONS_RRQ
+    let serialNumber = null;
+    try {
+      const CMD_OPTIONS_RRQ = 11;
+      const snBuffer = await zk.executeCmd(CMD_OPTIONS_RRQ, '~SerialNumber');
+      const snString = snBuffer.toString('ascii');
+      console.log('Serial Number response:', snString);
+
+      // Parse serial number from response (format: "~SerialNumber=XXX\x00")
+      if (snString.includes('~SerialNumber=')) {
+        serialNumber = snString.split('~SerialNumber=')[1].split('\x00')[0].trim();
+      }
+    } catch (snError) {
+      console.error('Failed to get serial number:', snError.message);
+    }
+
+    // Try alternative serial number command if first attempt failed
+    if (!serialNumber) {
+      try {
+        const snBuffer = await zk.executeCmd(11, 'SerialNumber');
+        const snString = snBuffer.toString('ascii');
+        if (snString.includes('SerialNumber=')) {
+          serialNumber = snString.split('SerialNumber=')[1].split('\x00')[0].trim();
+        }
+      } catch (err) {
+        console.error('Alternative serial number fetch failed:', err.message);
+      }
+    }
+
+    await zk.disconnect();
+
+    return {
+      success: true,
+      info: deviceInfo,
+      serialNumber: serialNumber
+    };
+  } catch (error) {
+    console.error('Failed to get device info:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 // Fetch Attendance from Device
 ipcMain.handle('fetch-attendance-from-device', async (event, device) => {
   try {
     const zk = new ZKLib(device.ip, 4370, 10000, 4000);
     await zk.createSocket();
     await zk.enableDevice();
+
+    // First, fetch users to get names
+    const users = await zk.getUsers();
+    const userMap = {};
+
+    // Create a map of userId -> userName for quick lookup
+    if (users && users.data && Array.isArray(users.data)) {
+      users.data.forEach(user => {
+        userMap[user.userId] = user.name || user.userId;
+      });
+    }
+
+    // Then fetch attendance logs
     const attendanceLogs = await zk.getAttendances();
     await zk.disableDevice();
     await zk.disconnect();
@@ -241,8 +333,9 @@ ipcMain.handle('fetch-attendance-from-device', async (event, device) => {
       throw new Error('Invalid attendance data format: expected an array');
     }
 
+    // Map attendance with actual user names
     const attendanceList = attendanceLogs.data.map((item) => ({
-      Name: item.deviceUserId,
+      Name: userMap[item.deviceUserId] || item.deviceUserId, // Use name from user list, fallback to userId
       Count: item.userSn,
       recordTime: item.recordTime,
       ip: item.ip,

@@ -28,6 +28,7 @@ const RealtimeAttendance = (props) => {
   const columns = [
     { name: t('realtime.columns.deviceIp'), selector: row => row.deviceIp, sortable: true },
     { name: t('realtime.columns.userId'), selector: row => row.userId, sortable: true },
+    { name: t('realtime.columns.name'), selector: row => row.name, sortable: true },
     { name: t('realtime.columns.date'), selector: row => row.date, sortable: true },
     { name: t('realtime.columns.time'), selector: row => row.time, sortable: true },
   ];

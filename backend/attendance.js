@@ -42,6 +42,8 @@ function createDeviceDB() {
                 // Create the 'devices' table
                 return knex.schema.createTable('devices', (table) => {
                     table.increments('id').primary(); // Auto-increment primary key
+                    table.string('machine_id').nullable(); // Physical device/machine ID
+                    table.string('serial_number').nullable(); // Device Serial Number (Factory SN)
                     table.string('ip'); // IP address of the device
                     table.string('type'); // Type of the device
                     table.string('url').nullable(); // Type of the device
@@ -57,6 +59,31 @@ function createDeviceDB() {
                 });
             } else {
                 console.log("Devices table already exists.");
+                // Add machine_id column if it doesn't exist (migration)
+                knex.schema.hasColumn('devices', 'machine_id')
+                    .then((hasColumn) => {
+                        if (!hasColumn) {
+                            return knex.schema.table('devices', (table) => {
+                                table.string('machine_id').nullable();
+                            })
+                            .then(() => console.log("Added 'machine_id' column to devices table."))
+                            .catch((err) => console.error("Error adding 'machine_id' column:", err));
+                        }
+                    })
+                    .catch((err) => console.error("Error checking for 'machine_id' column:", err));
+
+                // Add serial_number column if it doesn't exist (migration)
+                knex.schema.hasColumn('devices', 'serial_number')
+                    .then((hasColumn) => {
+                        if (!hasColumn) {
+                            return knex.schema.table('devices', (table) => {
+                                table.string('serial_number').nullable();
+                            })
+                            .then(() => console.log("Added 'serial_number' column to devices table."))
+                            .catch((err) => console.error("Error adding 'serial_number' column:", err));
+                        }
+                    })
+                    .catch((err) => console.error("Error checking for 'serial_number' column:", err));
             }
         })
         .catch((err) => {
@@ -281,9 +308,9 @@ function getAllDevices() {
 
 // Add a new device
 const addDevice = async (device) => {
-    const { id, ip, type,url,token,get_user_url} = device;
+    const { id, machine_id, serial_number, ip, type, url, token, get_user_url } = device;
     try {
-        await knex('devices').insert({ id, ip, type,url,token,get_user_url });
+        await knex('devices').insert({ id, machine_id, serial_number, ip, type, url, token, get_user_url });
         return 'Device added successfully.';
     } catch (err) {
         console.error('Error adding device:', err.message);
@@ -293,11 +320,11 @@ const addDevice = async (device) => {
 
 // Edit an existing device
 const editDevice = async (id, updatedDevice) => {
-    const { ip, type,url,token,get_user_url } = updatedDevice;
+    const { machine_id, serial_number, ip, type, url, token, get_user_url } = updatedDevice;
     try {
         await knex('devices')
             .where({ id })
-            .update({ ip, type,url ,token,get_user_url});
+            .update({ machine_id, serial_number, ip, type, url, token, get_user_url });
         return 'Device updated successfully.';
     } catch (err) {
         console.error('Error editing device:', err.message);
