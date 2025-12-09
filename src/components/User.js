@@ -144,10 +144,12 @@ const User = (props) => {
         });
         const apiData = apiResponse.data;
 
+        // Map API users and match with device users
         const updatedUserList = apiData.map(apiUser => {
           const matchedDeviceUser = response.data.find(deviceUser => deviceUser.userId === apiUser.userId);
 
           if (matchedDeviceUser) {
+            // User exists in both API and device - mark as synced
             return {
               cardno: matchedDeviceUser.cardno,
               userId: matchedDeviceUser.userId,
@@ -158,7 +160,8 @@ const User = (props) => {
               status: 'sync',
               employee_status: apiUser.status
             };
-          } else if (apiUser.status === 'active') {
+          } else {
+            // User exists only in API - mark as not synced
             return {
               cardno: 0,
               userId: apiUser.userId,
@@ -170,10 +173,24 @@ const User = (props) => {
               employee_status: apiUser.status
             };
           }
-          return undefined;
         });
 
-        setUserList(updatedUserList.filter(user => user !== undefined));
+        // Find users that exist in device but NOT in API
+        const deviceOnlyUsers = response.data.filter(deviceUser => {
+          return !apiData.find(apiUser => apiUser.userId === deviceUser.userId);
+        }).map(deviceUser => ({
+          cardno: deviceUser.cardno,
+          userId: deviceUser.userId,
+          name: deviceUser.name,
+          password: deviceUser.password,
+          role: deviceUser.role,
+          uid: deviceUser.uid,
+          status: 'sync',
+          employee_status: 'device_only' // Mark as device only
+        }));
+
+        // Combine both lists
+        setUserList([...updatedUserList, ...deviceOnlyUsers]);
       } else {
         setUserList([]);
       }
@@ -298,7 +315,7 @@ const User = (props) => {
     setProgress(0);
 
     try {
-      const usersToDelete = userList.filter(user => user.employee_status !== 'active');
+      const usersToDelete = userList.filter(user => user.employee_status !== 'active'|| user.employee_status !== 'A' || user.employee_status !== 'L');
 
       if (usersToDelete.length === 0) {
         alert('No non-active users to delete!');
